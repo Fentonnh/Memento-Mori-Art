@@ -1,52 +1,57 @@
 let particles = [];
 let numParticles = 600;
-let decayRate = 0.3; // How quickly alpha fades
-let fadeOut = false;
 let centerX, centerY;
+let fadeOut = false;
 
 function setup() {
   let canvas = createCanvas(600, 600);
   canvas.parent("canvas-container");
   background(20);
-  angleMode(DEGREES);
+  angleMode(RADIANS);
 
   centerX = width / 2;
   centerY = height / 2;
 
   for (let i = 0; i < numParticles; i++) {
-    let angle = random(360);
-    let radius = randomGaussian() * 100 + 150;
-    let speed = random(0.1, 0.6);
-    let alpha = 255;
+    let angle = random(TWO_PI);
+    let radius = randomGaussian() * 80 + 150;
     particles.push({
-      x: centerX + radius * cos(angle),
-      y: centerY + radius * sin(angle),
-      angle,
-      radius,
-      speed,
-      alpha,
-      rOffset: random(1000)
+      angle: angle,
+      radius: radius,
+      speed: random(0.001, 0.01),
+      alpha: 255,
+      decayRate: random(0.3, 1.2),
+      size: random(2, 4)
     });
   }
 
-  // Trigger fade after a pause
   setTimeout(() => fadeOut = true, 3000);
 }
 
 function draw() {
-  background(20, 20, 20, 25); // Leave trails like fading dust
+  background(20, 20, 20, 40);
+
   noStroke();
 
   for (let p of particles) {
-    // Spin each particle slightly around center
-    p.angle += p.speed;
-    let rad = p.radius;
-    p.x = centerX + rad * cos(p.angle);
-    p.y = centerY + rad * sin(p.angle);
+    // Convert polar to cartesian
+    let x = centerX + p.radius * cos(p.angle);
+    let y = centerY + p.radius * sin(p.angle);
 
-    // Draw the particle
     fill(255, 230, 200, p.alpha);
-    circle(p.x, p.y, 3);
+    circle(x, y, p.size);
 
-    // Slowly fade away
-    if (fadeOut)
+    // Animate
+    if (fadeOut) {
+      p.radius -= 0.2;  // Spiral inward
+      p.alpha -= p.decayRate;
+      p.alpha = max(p.alpha, 0);
+    }
+
+    p.angle += p.speed;
+  }
+}
+
+document.getElementById("save-btn").addEventListener("click", () => {
+  saveCanvas('memento-mori', 'png');
+});
